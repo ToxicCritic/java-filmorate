@@ -21,4 +21,6 @@ public interface DirectorStorage {
     Set<Director> getDirectorsFilmById(int filmId);
 
     void deleteDirectorsFilmById(int filmId);
+
+    Map<Integer, Set<Director>> getDirectorsForFilmIds(Set<Integer> filmIds);
 }

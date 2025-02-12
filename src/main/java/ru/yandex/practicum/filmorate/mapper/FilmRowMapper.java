@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.RatingStorage;
@@ -27,9 +28,7 @@ public class FilmRowMapper implements RowMapper<Film> {
         film.setDescription(rs.getString("DESCRIPTION"));
         film.setReleaseDate(rs.getDate("RELEASE_DATE").toLocalDate());
         film.setDuration(rs.getInt("DURATION"));
-        film.setMpa(ratingStorage.getRatingById(rs.getInt("RATING_ID")));
-        film.setGenres(genreStorage.getGenresFilmById(film.getId()));
-        film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+        film.setMpa(new Rating(rs.getInt("RATING_ID"), null));
         return film;
     }
 }

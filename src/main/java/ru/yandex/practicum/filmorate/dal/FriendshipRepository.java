@@ -27,14 +27,24 @@ public class FriendshipRepository extends BaseRepository<User> implements Friend
 
     @Override
     public List<User> getCommonFriends(int firstUser, int secondUser) {
-        return findMany("SELECT * FROM USERS WHERE USER_ID IN " +
-                "(SELECT FRIEND_ID FROM FRIENDS_LIST WHERE USER_ID = ?) AND USER_ID IN " +
-                "(SELECT FRIEND_ID FROM FRIENDS_LIST WHERE USER_ID = ?)", firstUser, secondUser);
+        String sql = """
+                SELECT u.*\s
+                FROM USERS u
+                JOIN FRIENDS_LIST fl1 ON u.USER_ID = fl1.FRIEND_ID
+                JOIN FRIENDS_LIST fl2 ON u.USER_ID = fl2.FRIEND_ID
+                WHERE fl1.USER_ID = ? AND fl2.USER_ID = ?
+               \s""";
+        return findMany(sql, firstUser, secondUser);
     }
 
     @Override
     public List<User> getAllUserFriends(int userId) {
-        return findMany("SELECT * FROM USERS WHERE USER_ID IN " +
-                "(SELECT FRIEND_ID FROM FRIENDS_LIST WHERE USER_ID = ?)", userId);
+        String sql = """
+                SELECT u.*\s
+                FROM USERS u
+                JOIN FRIENDS_LIST fl ON u.USER_ID = fl.FRIEND_ID
+                WHERE fl.USER_ID = ?
+               \s""";
+        return findMany(sql, userId);
     }
 }

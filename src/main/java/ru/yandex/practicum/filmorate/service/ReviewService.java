@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,7 @@ public class ReviewService {
     private final EventStorage eventStorage;
 
     // Создание нового отзыва
-    public Review createReview(@Valid Review review) {
+    public Review createReview(Review review) {
         log.info("Попытка получить пользователя по id");
         userStorage.getUserById(review.getUserId());
         log.info("Попытка получить фильм по id");
@@ -38,7 +37,7 @@ public class ReviewService {
     }
 
     // Обновление существующего отзыва
-    public Review updateReview(@Valid Review review) {
+    public Review updateReview(Review review) {
         reviewStorage.getReviewById(review.getReviewId());
         Review updated = reviewStorage.updateReview(review);
         log.info("Отзыв с id {} обновлён", review.getReviewId());
@@ -61,8 +60,7 @@ public class ReviewService {
 
     // Получение списка отзывов
     public List<Review> getReviews(Integer filmId, Integer count) {
-        int limit = (count == null) ? 10 : count;
-        List<Review> reviews = reviewStorage.getReviewsByFilmId(filmId, limit);
+        List<Review> reviews = reviewStorage.getReviewsByFilmId(filmId, count);
         log.info("Получено {} отзывов (filmId = {})", reviews.size(), filmId);
         return reviews;
     }
@@ -72,28 +70,28 @@ public class ReviewService {
     public void addLike(int reviewId, int userId) {
         getReviewById(reviewId);
         userStorage.getUserById(userId);
-        reviewStorage.addLike(reviewId, userId);
+        reviewStorage.addReviewReaction(reviewId, userId, true);
         log.info("Пользователь {} поставил лайк отзыву {}", userId, reviewId);
     }
 
     public void addDislike(int reviewId, int userId) {
         getReviewById(reviewId);
         userStorage.getUserById(userId);
-        reviewStorage.addDislike(reviewId, userId);
+        reviewStorage.addReviewReaction(reviewId, userId, false);
         log.info("Пользователь {} поставил дизлайк отзыву {}", userId, reviewId);
     }
 
     public void removeLike(int reviewId, int userId) {
         getReviewById(reviewId);
         userStorage.getUserById(userId);
-        reviewStorage.removeLike(reviewId, userId);
+        reviewStorage.removeReviewReaction(reviewId, userId);
         log.info("Пользователь {} удалил лайк у отзыва {}", userId, reviewId);
     }
 
     public void removeDislike(int reviewId, int userId) {
         getReviewById(reviewId);
         userStorage.getUserById(userId);
-        reviewStorage.removeDislike(reviewId, userId);
+        reviewStorage.removeReviewReaction(reviewId, userId);
         log.info("Пользователь {} удалил дизлайк у отзыва {}", userId, reviewId);
     }
 }

@@ -99,9 +99,4 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         String searchParam = "%" + searchQuery.toLowerCase() + "%";
         return findMany(sql, searchParam);
     }
-
-    public boolean ratingExists(Integer ratingId) {
-        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM RATING WHERE RATING_ID = ?", Integer.class, ratingId);
-        return count > 0;
-    }
 }

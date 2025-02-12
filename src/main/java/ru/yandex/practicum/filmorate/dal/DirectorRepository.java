@@ -98,4 +98,29 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
                 DELETE FROM DIRECTORS_SAVE WHERE FILM_ID = ?
                 """, filmId);
     }
+
+    @Override
+    public Map<Integer, Set<Director>> getDirectorsForFilmIds(Set<Integer> filmIds) {
+        if (filmIds == null || filmIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        String placeholders = String.join(",", Collections.nCopies(filmIds.size(), "?"));
+        String sql = String.format(
+                "SELECT FD.FILM_ID, D.DIRECTOR_ID, D.DIRECTOR_NAME " +
+                "FROM DIRECTORS_SAVE FD " +
+                "JOIN DIRECTORS D ON FD.DIRECTOR_ID = D.DIRECTOR_ID " +
+                "WHERE FD.FILM_ID IN (%s)", placeholders);
+        Object[] params = filmIds.toArray();
+        return jdbc.query(sql, rs -> {
+            Map<Integer, Set<Director>> map = new HashMap<>();
+            while (rs.next()) {
+                int filmId = rs.getInt("FILM_ID");
+                Director director = new Director();
+                director.setId(rs.getInt("DIRECTOR_ID"));
+                director.setName(rs.getString("DIRECTOR_NAME"));
+                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(director);
+            }
+            return map;
+        }, params);
+    }
 }

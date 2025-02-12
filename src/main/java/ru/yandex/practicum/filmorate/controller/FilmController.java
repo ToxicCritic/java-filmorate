@@ -25,7 +25,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         return filmService.updateFilm(film);
     }
 
@@ -46,7 +46,6 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    @ResponseStatus(HttpStatus.OK)
     public void delLikeFilm(@PathVariable int id, @PathVariable int userId) {
         log.info("Пользователь {} удаляет лайк с фильма {}", userId, id);
         filmService.delLikeFilm(id, userId);

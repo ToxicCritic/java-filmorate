@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.dal;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 @Repository
 public class GenreRepository extends BaseRepository<Genre> implements GenreStorage {
 
-    @Autowired
     public GenreRepository(JdbcTemplate jdbc, RowMapper<Genre> mapper) {
         super(jdbc, mapper);
     }
@@ -73,5 +71,31 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
                 .stream()
                 .sorted(Comparator.comparing(Genre::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    @Override
+    public Map<Integer, Set<Genre>> getGenresForFilmIds(Set<Integer> filmIds) {
+        if (filmIds == null || filmIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        // Создаём строку плейсхолдеров вида "?, ?, ?, ..."
+        String placeholders = String.join(",", Collections.nCopies(filmIds.size(), "?"));
+        String sql = String.format(
+                "SELECT FG.FILM_ID, G.GENRE_ID, G.GENRE_NAME " +
+                "FROM GENRES_SAVE FG " +
+                "JOIN GENRES G ON FG.GENRE_ID = G.GENRE_ID " +
+                "WHERE FG.FILM_ID IN (%s)", placeholders);
+        Object[] params = filmIds.toArray();
+        return jdbc.query(sql, rs -> {
+            Map<Integer, Set<Genre>> map = new HashMap<>();
+            while (rs.next()) {
+                int filmId = rs.getInt("FILM_ID");
+                Genre genre = new Genre();
+                genre.setId(rs.getInt("GENRE_ID"));
+                genre.setName(rs.getString("GENRE_NAME"));
+                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(genre);
+            }
+            return map;
+        }, params);
     }
 }

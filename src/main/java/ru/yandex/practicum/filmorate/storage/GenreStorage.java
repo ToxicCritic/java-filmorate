@@ -15,4 +15,6 @@ public interface GenreStorage {
     void deleteGenreForFilmById(int id);
 
     Set<Genre> getGenresFilmById(int id);
+
+    Map<Integer, Set<Genre>> getGenresForFilmIds(Set<Integer> filmIds);
 }

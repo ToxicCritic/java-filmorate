@@ -24,6 +24,7 @@ public class UserService {
     private final EventStorage eventStorage;
     private final LikesStorage likesStorage;
     private final FilmStorage filmStorage;
+    private final FilmEnricher filmEnricher;
 
     public User createUser(@Valid User user) {
         if (user.getName() == null || user.getName().isBlank()) {
@@ -120,6 +121,7 @@ public class UserService {
                 ))
                 .collect(Collectors.toCollection(LinkedList::new));
 
+        filmEnricher.enrichFilms(sortedFilms);
         log.debug("Рекомендации для пользователя {} на основе предпочтений пользователя {}: {}",
                 userId, similarUserId, sortedFilms);
         return sortedFilms;

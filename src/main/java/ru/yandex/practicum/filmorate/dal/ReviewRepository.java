@@ -92,38 +92,33 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
     // Методы для работы с лайками и дизлайками
 
     @Override
-    public void addLike(int reviewId, int userId) {
+    public void addReviewReaction(int reviewId, int userId, boolean isLike) {
         update("""
                 INSERT INTO REVIEW_LIKES (REVIEW_ID, USER_ID, IS_LIKE)
                 VALUES (?, ?, ?)
-                """, reviewId, userId, true);
-        update("UPDATE REVIEWS SET USEFUL = USEFUL + 1 WHERE REVIEW_ID = ?", reviewId);
+                """, reviewId, userId, isLike);
+        if (isLike) {
+            update("UPDATE REVIEWS SET USEFUL = USEFUL + 1 WHERE REVIEW_ID = ?", reviewId);
+        } else {
+            update("UPDATE REVIEWS SET USEFUL = USEFUL - 1 WHERE REVIEW_ID = ?", reviewId);
+        }
     }
 
     @Override
-    public void addDislike(int reviewId, int userId) {
-        update("""
-                INSERT INTO REVIEW_LIKES (REVIEW_ID, USER_ID, IS_LIKE)
-                VALUES (?, ?, ?)
-                """, reviewId, userId, false);
-        update("UPDATE REVIEWS SET USEFUL = USEFUL - 1 WHERE REVIEW_ID = ?", reviewId);
-    }
-
-    @Override
-    public void removeLike(int reviewId, int userId) {
-        delete("""
-                DELETE FROM REVIEW_LIKES
-                WHERE REVIEW_ID = ? AND USER_ID = ? AND IS_LIKE = true
-                """, reviewId, userId);
-        update("UPDATE REVIEWS SET USEFUL = USEFUL - 1 WHERE REVIEW_ID = ?", reviewId);
-    }
-
-    @Override
-    public void removeDislike(int reviewId, int userId) {
-        update("""
-                DELETE FROM REVIEW_LIKES
-                WHERE REVIEW_ID = ? AND USER_ID = ? AND IS_LIKE = false
-                """, reviewId, userId);
-        update("UPDATE REVIEWS SET USEFUL = USEFUL + 1 WHERE REVIEW_ID = ?", reviewId);
+    public void removeReviewReaction(int reviewId, int userId) {
+        Boolean isLike;
+        try {
+            isLike = jdbc.queryForObject(
+                    "SELECT IS_LIKE FROM REVIEW_LIKES WHERE REVIEW_ID = ? AND USER_ID = ?",
+                    Boolean.class, reviewId, userId);
+        } catch (Exception e) {
+            return;
+        }
+        delete("DELETE FROM REVIEW_LIKES WHERE REVIEW_ID = ? AND USER_ID = ?", reviewId, userId);
+        if (Boolean.TRUE.equals(isLike)) {
+            update("UPDATE REVIEWS SET USEFUL = USEFUL - 1 WHERE REVIEW_ID = ?", reviewId);
+        } else {
+            update("UPDATE REVIEWS SET USEFUL = USEFUL + 1 WHERE REVIEW_ID = ?", reviewId);
+        }
     }
 }
